@@ -23,6 +23,7 @@ public class AuthService {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
+
     public TokenResponseDTO login(LoginRequestDTO dto) {
         User user = userRepository.findByEmail(dto.email().toLowerCase().trim())
                 .orElseThrow(() -> new IllegalArgumentException("Credenciais inválidas."));
