@@ -2,6 +2,7 @@ package com.desafio.sea.infra.client;
 
 import com.desafio.sea.domain.dto.solicitation.ViaCepResponseDTO;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
@@ -10,10 +11,13 @@ public class ViaCepService {
 
     private final RestClient restClient;
 
+    @Autowired
     public ViaCepService(@Value("${via-cep.base-url}") String baseUrl) {
-        this.restClient = RestClient.builder()
-                .baseUrl(baseUrl)
-                .build();
+        this(RestClient.builder().baseUrl(baseUrl).build());
+    }
+
+    ViaCepService(RestClient restClient) {
+        this.restClient = restClient;
     }
 
     public ViaCepResponseDTO findAddressByCep(String cep) {
@@ -33,6 +37,8 @@ public class ViaCepService {
             }
 
             return response;
+        } catch (IllegalArgumentException ex) {
+            throw ex;
         } catch (Exception ex) {
             throw new IllegalArgumentException("Failed to fetch address from CEP service: " + ex.getMessage());
         }

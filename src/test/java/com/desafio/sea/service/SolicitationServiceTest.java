@@ -408,6 +408,72 @@ class SolicitationServiceTest {
         assertSubmissionConflict("HIGH priority requires estimated value >= 100.");
     }
 
+    @Test
+    @DisplayName("Deve rejeitar submissão quando os termos não foram informados")
+    void shouldRejectSubmissionWithNullTermsAcceptance() {
+        completeDraftSolicitation();
+        draftSolicitation.setTermsAccepted(null);
+        mockExistingDraft();
+
+        assertSubmissionConflict("Step 3 is incomplete.");
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar submissão com UF inválida")
+    void shouldRejectSubmissionWithInvalidState() {
+        completeDraftSolicitation();
+        draftSolicitation.setState("D");
+        mockExistingDraft();
+
+        assertSubmissionConflict("Step 2 (Address) is incomplete.");
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar uma segunda submissão")
+    void shouldRejectSubmittingAnAlreadySubmittedSolicitation() {
+        completeDraftSolicitation();
+        draftSolicitation.setStatus(SolicitationStatus.SUBMITTED);
+        mockExistingDraft();
+
+        IllegalStateException exception = assertThrows(
+                IllegalStateException.class,
+                () -> solicitationService.submit(draftSolicitation.getId(), client)
+        );
+
+        assertEquals("Only DRAFT solicitations can be modified.", exception.getMessage());
+        verify(solicitationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve impedir que outro cliente submeta a solicitação")
+    void shouldRejectSubmissionByAnotherClient() {
+        completeDraftSolicitation();
+        mockExistingDraft();
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> solicitationService.submit(draftSolicitation.getId(), anotherClient)
+        );
+
+        assertEquals("Access denied. You are not the owner of this solicitation.", exception.getMessage());
+        verify(solicitationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve rejeitar submissão de solicitação inexistente")
+    void shouldRejectSubmissionOfNonexistentSolicitation() {
+        UUID nonexistentId = UUID.randomUUID();
+        when(solicitationRepository.findById(nonexistentId)).thenReturn(Optional.empty());
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> solicitationService.submit(nonexistentId, client)
+        );
+
+        assertEquals("Solicitation not found with id: " + nonexistentId, exception.getMessage());
+        verify(solicitationRepository, never()).save(any());
+    }
+
     private SolicitationStep1DTO validStep1() {
         return new SolicitationStep1DTO(
                 ServiceType.MAINTENANCE,

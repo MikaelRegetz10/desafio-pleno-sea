@@ -119,6 +119,7 @@ public class SolicitationService {
 
     private void validateStep1Completeness(Solicitation s) {
         if (s.getServiceType() == null || s.getTitle() == null || s.getDescription() == null ||
+                s.getTitle().isBlank() || s.getDescription().isBlank() ||
                 s.getTitle().length() < 3 || s.getTitle().length() > 80 ||
                 s.getDescription().length() < 20 || s.getDescription().length() > 1000) {
             throw new IllegalStateException("Step 1 is incomplete or invalid.");
@@ -127,14 +128,17 @@ public class SolicitationService {
 
     private void validateStep2Completeness(Solicitation s) {
         if (s.getCep() == null || s.getStreet() == null || s.getNeighborhood() == null ||
-                s.getCity() == null || s.getState() == null || s.getNumber() == null) {
+                s.getCity() == null || s.getState() == null || s.getNumber() == null ||
+                s.getCep().isBlank() || s.getStreet().isBlank() || s.getNeighborhood().isBlank() ||
+                s.getCity().isBlank() || s.getNumber().isBlank() ||
+                !s.getCep().matches("\\d{8}") || !s.getState().matches("[A-Z]{2}")) {
             throw new IllegalStateException("Step 2 (Address) is incomplete.");
         }
     }
 
     private void validateStep3Completeness(Solicitation s) {
         if (s.getPriority() == null || s.getPreferredDate() == null || s.getEstimatedValue() == null ||
-                Boolean.FALSE.equals(s.getTermsAccepted())) {
+                !Boolean.TRUE.equals(s.getTermsAccepted()) || s.getEstimatedValue().signum() < 0) {
             throw new IllegalStateException("Step 3 is incomplete.");
         }
         if (s.getPreferredDate().isBefore(LocalDate.now())) {
