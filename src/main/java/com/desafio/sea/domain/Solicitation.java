@@ -28,10 +28,10 @@ public class Solicitation {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "client_id", nullable = false)
     @JsonIgnore
-    private User clientId;
+    private User client;
 
     @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
+    @Column(nullable = false, length = 20)
     @Builder.Default
     private SolicitationStatus status = SolicitationStatus.DRAFT;
 
@@ -39,8 +39,9 @@ public class Solicitation {
     @Builder.Default
     private Integer currentStep = 1;
 
+    // Step 1: Basic Info
     @Enumerated(EnumType.STRING)
-    @Column(name = "service_type")
+    @Column(name = "service_type", length = 30)
     private ServiceType serviceType;
 
     @Column(length = 80)
@@ -49,6 +50,7 @@ public class Solicitation {
     @Column(length = 1000)
     private String description;
 
+    // Step 2: Address
     @Column(length = 10)
     private String cep;
 
@@ -70,7 +72,9 @@ public class Solicitation {
     @Column(length = 2)
     private String state;
 
+    // Step 3: Final Details & Confirmation
     @Enumerated(EnumType.STRING)
+    @Column(length = 10)
     private Priority priority;
 
     @Column(name = "preferred_date")
@@ -83,8 +87,7 @@ public class Solicitation {
     @Builder.Default
     private Boolean termsAccepted = false;
 
-
-    // AUDITORIA
+    // Audit & Review
     @Column(name = "created_at", nullable = false, updatable = false)
     @Builder.Default
     private Instant createdAt = Instant.now();
@@ -100,7 +103,7 @@ public class Solicitation {
     private Instant analyzedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "analyzed_by", nullable = false)
+    @JoinColumn(name = "analyzed_by") // Ajustado para nullable (padrão)
     private User analyzedBy;
 
     @Column(name = "analysis_comment", length = 1000)
