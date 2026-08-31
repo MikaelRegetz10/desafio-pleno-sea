@@ -6,6 +6,7 @@ import com.desafio.sea.domain.dto.solicitation.*;
 import com.desafio.sea.domain.enums.Priority;
 import com.desafio.sea.domain.enums.SolicitationStatus;
 import com.desafio.sea.infra.client.ViaCepService;
+import com.desafio.sea.infra.elasticsearch.SolicitationIndexerService;
 import com.desafio.sea.repository.SolicitationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -23,6 +24,8 @@ public class SolicitationService {
     private SolicitationRepository solicitationRepository;
     @Autowired
     private ViaCepService viaCepService;
+    @Autowired
+    private SolicitationIndexerService indexerService;
 
     @Transactional
     public SolicitationResponseDTO saveStep1(UUID id, User client, SolicitationStep1DTO dto) {
@@ -46,7 +49,7 @@ public class SolicitationService {
             solicitation.setCurrentStep(1);
         }
 
-        return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
+        return SolicitationResponseDTO.fromEntity(saveSolicitation(solicitation));
     }
 
     @Transactional()
@@ -79,7 +82,7 @@ public class SolicitationService {
             solicitation.setCurrentStep(2);
         }
 
-        return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
+        return SolicitationResponseDTO.fromEntity(saveSolicitation(solicitation));
     }
 
     @Transactional
@@ -97,7 +100,7 @@ public class SolicitationService {
 
         solicitation.setCurrentStep(3);
 
-        return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
+        return SolicitationResponseDTO.fromEntity(saveSolicitation(solicitation));
     }
 
     @Transactional
@@ -111,7 +114,7 @@ public class SolicitationService {
         solicitation.setStatus(SolicitationStatus.SUBMITTED);
         solicitation.setSubmittedAt(Instant.now());
 
-        return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
+        return SolicitationResponseDTO.fromEntity(saveSolicitation(solicitation));
     }
 
     private Solicitation findAndValidateDraftOwnership(UUID id, User client) {
@@ -159,5 +162,11 @@ public class SolicitationService {
         if (s.getPriority() == Priority.HIGH && s.getEstimatedValue().compareTo(new BigDecimal("100")) < 0) {
             throw new IllegalStateException("HIGH priority requires estimated value >= 100.");
         }
+    }
+
+    public Solicitation saveSolicitation(Solicitation solicitation) {
+        Solicitation saved = solicitationRepository.save(solicitation);
+        indexerService.index(saved);
+        return saved;
     }
 }

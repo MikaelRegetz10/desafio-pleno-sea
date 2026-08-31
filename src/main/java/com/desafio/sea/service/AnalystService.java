@@ -26,6 +26,9 @@ public class AnalystService {
     private SolicitationRepository solicitationRepository;
 
     @Autowired
+    private SolicitationService solicitationService;
+
+    @Autowired
     private UserRepository userRepository;
 
     @Transactional
@@ -42,7 +45,7 @@ public class AnalystService {
         }
 
         solicitation.setStatus(SolicitationStatus.IN_REVIEW);
-        return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
+        return SolicitationResponseDTO.fromEntity(solicitationService.saveSolicitation(solicitation));
     }
 
     @Transactional
@@ -61,7 +64,7 @@ public class AnalystService {
         solicitation.setAnalyzedBy(analyst);
         solicitation.setAnalyzedAt(Instant.now());
 
-        return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
+        return SolicitationResponseDTO.fromEntity(solicitationService.saveSolicitation(solicitation));
     }
 
     private Solicitation findAndValidateAccess(UUID id, User analyst) {
