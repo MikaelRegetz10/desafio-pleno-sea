@@ -27,6 +27,14 @@ public class SolicitationController {
         return ResponseEntity.status(HttpStatus.CREATED).body(solicitationService.saveStep1(null, client, dto));
     }
 
+    @GetMapping("/{id}")
+    public ResponseEntity<SolicitationResponseDTO> getById(
+            @PathVariable UUID id,
+            @AuthenticationPrincipal User client
+    ) {
+        return ResponseEntity.ok(solicitationService.getById(id, client));
+    }
+
     @PutMapping("/{id}/step1")
     public ResponseEntity<SolicitationResponseDTO> updateStep1(
             @PathVariable UUID id,

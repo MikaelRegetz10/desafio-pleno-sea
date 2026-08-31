@@ -70,6 +70,21 @@ class SolicitationControllerTest {
     }
 
     @Test
+    @DisplayName("Deve buscar uma solicitação e retornar HTTP 200")
+    void shouldGetSolicitation() {
+        SolicitationResponseDTO serviceResponse = response(2, SolicitationStatus.DRAFT);
+        when(solicitationService.getById(solicitationId, client)).thenReturn(serviceResponse);
+
+        ResponseEntity<SolicitationResponseDTO> response =
+                solicitationController.getById(solicitationId, client);
+
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertSame(serviceResponse, response.getBody());
+        verify(solicitationService).getById(solicitationId, client);
+        verifyNoMoreInteractions(solicitationService);
+    }
+
+    @Test
     @DisplayName("Deve atualizar o step 1 e retornar HTTP 200")
     void shouldUpdateStep1() {
         SolicitationStep1DTO dto = validStep1();

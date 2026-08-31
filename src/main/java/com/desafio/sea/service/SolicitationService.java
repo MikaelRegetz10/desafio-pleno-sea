@@ -49,6 +49,18 @@ public class SolicitationService {
         return SolicitationResponseDTO.fromEntity(solicitationRepository.save(solicitation));
     }
 
+    @Transactional()
+    public SolicitationResponseDTO getById(UUID id, User client) {
+        Solicitation solicitation = solicitationRepository.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Solicitation not found with id: " + id));
+
+        if (!solicitation.getClient().getId().equals(client.getId())) {
+            throw new IllegalArgumentException("Access denied. You are not the owner of this solicitation.");
+        }
+
+        return SolicitationResponseDTO.fromEntity(solicitation);
+    }
+
     @Transactional
     public SolicitationResponseDTO saveStep2(UUID id, User client, SolicitationStep2DTO dto) {
         Solicitation solicitation = findAndValidateDraftOwnership(id, client);

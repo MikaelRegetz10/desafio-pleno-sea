@@ -31,6 +31,7 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.when;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.authentication;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -153,7 +154,38 @@ class SolicitationWorkflowIntegrationTest {
                 .andExpect(jsonPath("$.invalidFields.termsAccepted").value("Terms must be accepted to proceed."));
     }
 
+    @Test
+    void shouldBlockAnalystFromCreatingSolicitation() throws Exception {
+        User analyst = User.builder()
+                .id(UUID.randomUUID())
+                .name("Analista")
+                .email("analyst.integration@sea.com")
+                .passwordHash("not-used")
+                .role(Role.ANALYST)
+                .enabled(true)
+                .build();
+
+        mockMvc.perform(post("/solicitations/step1")
+                        .with(authentication(authenticationFor(analyst)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"serviceType":"INSTALLATION","title":"Instalação solar","description":"Descrição válida para instalação solar."}
+                                """))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldBlockClientFromAnalystEndpoints() throws Exception {
+        mockMvc.perform(get("/analyst/solicitations/{id}", UUID.randomUUID())
+                        .with(authentication(clientAuthentication())))
+                .andExpect(status().isForbidden());
+    }
+
     private UsernamePasswordAuthenticationToken clientAuthentication() {
-        return new UsernamePasswordAuthenticationToken(client, null, client.getAuthorities());
+        return authenticationFor(client);
+    }
+
+    private UsernamePasswordAuthenticationToken authenticationFor(User user) {
+        return new UsernamePasswordAuthenticationToken(user, null, user.getAuthorities());
     }
 }

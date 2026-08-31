@@ -45,7 +45,7 @@ public class User implements UserDetails {
     @Column(name = "created_at", nullable = false, updatable = false)
     private Instant createdAt = Instant.now();
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection(fetch = FetchType.EAGER)
     @CollectionTable(
         name = "analyst_coverage",
         joinColumns = @JoinColumn(name = "user_id")

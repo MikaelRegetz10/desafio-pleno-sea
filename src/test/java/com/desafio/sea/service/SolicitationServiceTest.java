@@ -8,6 +8,7 @@ import com.desafio.sea.domain.dto.solicitation.SolicitationStep2DTO;
 import com.desafio.sea.domain.dto.solicitation.SolicitationStep3DTO;
 import com.desafio.sea.domain.dto.solicitation.ViaCepResponseDTO;
 import com.desafio.sea.domain.enums.Priority;
+import com.desafio.sea.domain.enums.Role;
 import com.desafio.sea.domain.enums.ServiceType;
 import com.desafio.sea.domain.enums.SolicitationStatus;
 import com.desafio.sea.infra.client.ViaCepService;
@@ -65,12 +66,14 @@ class SolicitationServiceTest {
                 .id(UUID.randomUUID())
                 .name("Cliente Teste")
                 .email("cliente@sea.com")
+                .role(Role.CLIENT)
                 .enabled(true)
                 .build();
         anotherClient = User.builder()
                 .id(UUID.randomUUID())
                 .name("Outro Cliente")
                 .email("outro@sea.com")
+                .role(Role.CLIENT)
                 .enabled(true)
                 .build();
         draftSolicitation = Solicitation.builder()
@@ -287,6 +290,31 @@ class SolicitationServiceTest {
 
         assertEquals("Solicitation not found with id: " + nonexistentId, exception.getMessage());
         verify(solicitationRepository, never()).save(any());
+    }
+
+    @Test
+    @DisplayName("Deve retornar a solicitação para o cliente proprietário")
+    void shouldReturnSolicitationToItsOwner() {
+        mockExistingDraft();
+
+        SolicitationResponseDTO response = solicitationService.getById(draftSolicitation.getId(), client);
+
+        assertEquals(draftSolicitation.getId(), response.id());
+        assertEquals(client.getId(), response.clientId());
+        verify(solicitationRepository).findById(draftSolicitation.getId());
+    }
+
+    @Test
+    @DisplayName("Deve impedir que outro cliente consulte a solicitação")
+    void shouldRejectRetrievalByAnotherClient() {
+        mockExistingDraft();
+
+        IllegalArgumentException exception = assertThrows(
+                IllegalArgumentException.class,
+                () -> solicitationService.getById(draftSolicitation.getId(), anotherClient)
+        );
+
+        assertEquals("Access denied. You are not the owner of this solicitation.", exception.getMessage());
     }
 
     @Test

@@ -2,6 +2,7 @@ package com.desafio.sea.infra;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ProblemDetail;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -65,6 +66,18 @@ public class RestExceptionHandler {
         );
         problemDetail.setTitle("Internal Server Error");
         problemDetail.setType(URI.create("https://api.sea.com/errors/internal-error"));
+        problemDetail.setProperty("timestamp", Instant.now());
+        return problemDetail;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ProblemDetail handleAccessDeniedException(AccessDeniedException ex) {
+        ProblemDetail problemDetail = ProblemDetail.forStatusAndDetail(
+                HttpStatus.FORBIDDEN,
+                ex.getMessage()
+        );
+        problemDetail.setTitle("Access Denied");
+        problemDetail.setType(URI.create("https://api.sea.com/errors/access-denied"));
         problemDetail.setProperty("timestamp", Instant.now());
         return problemDetail;
     }
