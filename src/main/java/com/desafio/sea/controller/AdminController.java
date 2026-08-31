@@ -3,6 +3,7 @@ package com.desafio.sea.controller;
 import com.desafio.sea.domain.dto.user.CreateAnalystRequestDTO;
 import com.desafio.sea.domain.dto.user.UpdateCoverageRequestDTO;
 import com.desafio.sea.domain.dto.user.UserResponseDTO;
+import com.desafio.sea.infra.aspect.Audit;
 import com.desafio.sea.service.AdminService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +21,7 @@ public class AdminController {
     @Autowired
     private AdminService adminService;
 
+    @Audit(action = "DECIDE_SOLICITATION")
     @PostMapping("/analyst")
     public ResponseEntity<UserResponseDTO> createAnalyst(@Valid @RequestBody CreateAnalystRequestDTO dto) {
         UserResponseDTO response = adminService.createAnalyst(dto);

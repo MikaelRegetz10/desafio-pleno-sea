@@ -7,6 +7,7 @@ import com.desafio.sea.domain.dto.solicitation.SolicitationResponseDTO;
 import com.desafio.sea.domain.enums.Priority;
 import com.desafio.sea.domain.enums.ServiceType;
 import com.desafio.sea.domain.enums.SolicitationStatus;
+import com.desafio.sea.infra.aspect.Audit;
 import com.desafio.sea.infra.elasticsearch.SolicitationDocument;
 import com.desafio.sea.service.AnalystService;
 import com.desafio.sea.service.SolicitationSearchService;
@@ -67,6 +68,7 @@ public class AnalystController {
         return ResponseEntity.ok(analystService.start(id, analyst));
     }
 
+    @Audit(action = "DECIDE_SOLICITATION")
     @PostMapping("/{id}/decide")
     public ResponseEntity<SolicitationResponseDTO> decide(
             @PathVariable UUID id,

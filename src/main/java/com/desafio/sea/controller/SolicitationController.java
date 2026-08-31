@@ -2,6 +2,7 @@ package com.desafio.sea.controller;
 
 import com.desafio.sea.domain.User;
 import com.desafio.sea.domain.dto.solicitation.*;
+import com.desafio.sea.infra.aspect.Audit;
 import com.desafio.sea.service.SolicitationService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,6 +63,7 @@ public class SolicitationController {
         return ResponseEntity.ok(solicitationService.saveStep3(id, client, dto));
     }
 
+    @Audit(action = "SUBMIT_SOLICITATION")
     @PostMapping("/{id}/submit")
     public ResponseEntity<SolicitationResponseDTO> submit(
             @PathVariable UUID id,

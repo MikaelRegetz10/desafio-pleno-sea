@@ -21,9 +21,9 @@ public class AuditLog {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "user_id", nullable = false)
+    @JoinColumn(name = "user_id")
     @JsonIgnore
-    private User userId;
+    private User user;
 
     @Column(length = 50)
     private String role;
