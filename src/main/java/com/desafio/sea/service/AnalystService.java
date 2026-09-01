@@ -83,30 +83,4 @@ public class AnalystService {
 
         return solicitation;
     }
-
-    @Transactional(readOnly = true)
-    public List<SolicitationResponseDTO> listAvailableForAnalyst(User analystPrincipal, SolicitationStatus status) {
-        User analyst = userRepository.findById(analystPrincipal.getId())
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        if (analyst.getRole() != Role.ANALYST && analyst.getRole() != Role.ADMIN) {
-            throw new AccessDeniedException("Only ANALYST or ADMIN users can list solicitations for analysis.");
-        }
-
-        List<Solicitation> solicitations;
-
-        if (analyst.getRole() == Role.ADMIN) {
-            solicitations = solicitationRepository.findByOptionalStatus(status);
-        } else {
-            Set<String> coverageStates = analyst.getCoverageStates();
-            if (coverageStates == null || coverageStates.isEmpty()) {
-                return List.of();
-            }
-            solicitations = solicitationRepository.findByStateInAndOptionalStatus(coverageStates, status);
-        }
-
-        return solicitations.stream()
-                .map(SolicitationResponseDTO::fromEntity)
-                .toList();
-    }
 }

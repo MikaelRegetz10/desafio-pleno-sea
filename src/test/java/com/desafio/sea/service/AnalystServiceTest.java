@@ -204,56 +204,6 @@ class AnalystServiceTest {
         assertEquals("Access denied. Solicitation state is outside your coverage.", exception.getMessage());
     }
 
-    @Test
-    void shouldListSolicitationsWithinAnalystCoverage() {
-        mockUserRepositoryForAnalyst();
-        when(solicitationRepository.findByStateInAndOptionalStatus(analyst.getCoverageStates(), null))
-                .thenReturn(List.of(solicitation));
-
-        List<SolicitationResponseDTO> response = analystService.listAvailableForAnalyst(analyst, null);
-
-        assertEquals(1, response.size());
-        assertEquals(solicitation.getId(), response.get(0).id());
-    }
-
-    @Test
-    void shouldListAllSolicitationsForAdmin() {
-        mockUserRepositoryForAdmin();
-        when(solicitationRepository.findByOptionalStatus(null))
-                .thenReturn(List.of(solicitation));
-
-        List<SolicitationResponseDTO> response = analystService.listAvailableForAnalyst(admin, null);
-
-        assertEquals(1, response.size());
-    }
-
-    @Test
-    void shouldReturnEmptyListWhenAnalystHasNoCoverageStates() {
-        User emptyCoverageAnalyst = User.builder()
-                .id(UUID.randomUUID())
-                .role(Role.ANALYST)
-                .coverageStates(Set.of())
-                .build();
-
-        when(userRepository.findById(emptyCoverageAnalyst.getId())).thenReturn(Optional.of(emptyCoverageAnalyst));
-
-        List<SolicitationResponseDTO> response = analystService.listAvailableForAnalyst(emptyCoverageAnalyst, null);
-
-        assertTrue(response.isEmpty());
-        verify(solicitationRepository, never()).findByStateInAndOptionalStatus(any(), any());
-    }
-
-    @Test
-    void shouldDenyListingForClientRole() {
-        User clientUser = User.builder().id(UUID.randomUUID()).role(Role.CLIENT).build();
-        when(userRepository.findById(clientUser.getId())).thenReturn(Optional.of(clientUser));
-
-        assertThrows(
-                AccessDeniedException.class,
-                () -> analystService.listAvailableForAnalyst(clientUser, null)
-        );
-    }
-
     private void mockUserRepositoryForAnalyst() {
         when(userRepository.findById(analyst.getId())).thenReturn(Optional.of(analyst));
     }
