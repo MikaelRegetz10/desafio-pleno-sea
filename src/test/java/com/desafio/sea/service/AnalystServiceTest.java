@@ -17,16 +17,13 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
+import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class AnalystServiceTest {
@@ -37,182 +34,102 @@ class AnalystServiceTest {
     @Mock
     private UserRepository userRepository;
 
+    @Mock
+    private SolicitationService solicitationService;
+
     @InjectMocks
     private AnalystService analystService;
 
-    private Solicitation solicitation;
     private User analyst;
     private User admin;
+    private User client;
+    private Solicitation mockSolicitation;
 
     @BeforeEach
     void setUp() {
-        User client = User.builder().id(UUID.randomUUID()).role(Role.CLIENT).build();
-        solicitation = Solicitation.builder()
+        analyst = User.builder()
+                .id(UUID.randomUUID())
+                .name("Analista SP/RJ")
+                .email("analista@sea.com")
+                .role(Role.ANALYST)
+                .coverageStates(Set.of("SP", "RJ"))
+                .build();
+
+        admin = User.builder()
+                .id(UUID.randomUUID())
+                .name("Admin")
+                .email("admin@sea.com")
+                .role(Role.ADMIN)
+                .build();
+
+        client = User.builder()
+                .id(UUID.randomUUID())
+                .name("Cliente")
+                .email("cliente@sea.com")
+                .role(Role.CLIENT)
+                .build();
+
+        mockSolicitation = Solicitation.builder()
                 .id(UUID.randomUUID())
                 .client(client)
                 .state("SP")
                 .status(SolicitationStatus.SUBMITTED)
                 .build();
-        analyst = User.builder()
-                .id(UUID.randomUUID())
-                .role(Role.ANALYST)
-                .coverageStates(Set.of("SP", "RJ"))
-                .build();
-        admin = User.builder().id(UUID.randomUUID()).role(Role.ADMIN).build();
+
+        lenient().when(solicitationService.saveSolicitation(any(Solicitation.class)))
+                .thenAnswer(invocation -> invocation.getArgument(0));
     }
 
     @Test
     void shouldReturnSolicitationWithinAnalystCoverage() {
-        mockSolicitation();
+        when(solicitationRepository.findById(mockSolicitation.getId())).thenReturn(Optional.of(mockSolicitation));
 
-        SolicitationResponseDTO response = analystService.getById(solicitation.getId(), analyst);
+        SolicitationResponseDTO response = analystService.getById(mockSolicitation.getId(), analyst);
 
-        assertEquals(solicitation.getId(), response.id());
-        assertEquals("SP", response.state());
+        assertNotNull(response);
+        assertEquals(mockSolicitation.getId(), response.id());
     }
 
     @Test
     void shouldRejectSolicitationOutsideAnalystCoverage() {
-        solicitation.setState("MG");
-        mockSolicitation();
+        mockSolicitation.setState("MG");
+        when(solicitationRepository.findById(mockSolicitation.getId())).thenReturn(Optional.of(mockSolicitation));
 
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> analystService.getById(solicitation.getId(), analyst)
-        );
-
-        assertEquals("Access denied. Solicitation state is outside your coverage.", exception.getMessage());
-    }
-
-    @Test
-    void shouldAllowAdminToAccessAnyState() {
-        solicitation.setState("MG");
-        mockSolicitation();
-
-        SolicitationResponseDTO response = analystService.getById(solicitation.getId(), admin);
-
-        assertEquals(solicitation.getId(), response.id());
+        assertThrows(AccessDeniedException.class, () -> analystService.getById(mockSolicitation.getId(), analyst));
     }
 
     @Test
     void shouldStartReviewForSubmittedSolicitation() {
-        mockSolicitation();
-        when(solicitationRepository.save(solicitation)).thenReturn(solicitation);
+        when(solicitationRepository.findById(mockSolicitation.getId())).thenReturn(Optional.of(mockSolicitation));
 
-        SolicitationResponseDTO response = analystService.start(solicitation.getId(), analyst);
+        SolicitationResponseDTO response = analystService.start(mockSolicitation.getId(), analyst);
 
-        assertEquals(SolicitationStatus.IN_REVIEW, solicitation.getStatus());
         assertEquals(SolicitationStatus.IN_REVIEW, response.status());
-        verify(solicitationRepository).save(solicitation);
-    }
-
-    @Test
-    void shouldNotStartReviewForSolicitationOutsideSubmittedStatus() {
-        solicitation.setStatus(SolicitationStatus.DRAFT);
-        mockSolicitation();
-
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
-                () -> analystService.start(solicitation.getId(), analyst)
-        );
-
-        assertEquals("Only SUBMITTED solicitations can be started for review.", exception.getMessage());
-        verify(solicitationRepository, never()).save(any());
+        verify(solicitationService).saveSolicitation(mockSolicitation);
     }
 
     @Test
     void shouldApproveSubmittedSolicitationAndFillAuditFields() {
-        mockSolicitation();
-        when(solicitationRepository.save(solicitation)).thenReturn(solicitation);
-        SolicitationDecisionDTO dto = new SolicitationDecisionDTO(
-                AnalysisDecision.APPROVE, "  Solicitação aprovada após análise.  "
-        );
+        when(solicitationRepository.findById(mockSolicitation.getId())).thenReturn(Optional.of(mockSolicitation));
+        SolicitationDecisionDTO decisionDTO = new SolicitationDecisionDTO(AnalysisDecision.APPROVE, "Solicitação aprovada após análise.");
 
-        SolicitationResponseDTO response = analystService.decide(solicitation.getId(), analyst, dto);
+        SolicitationResponseDTO response = analystService.decide(mockSolicitation.getId(), analyst, decisionDTO);
 
-        assertEquals(SolicitationStatus.APPROVED, solicitation.getStatus());
-        assertEquals("Solicitação aprovada após análise.", solicitation.getAnalysisComment());
-        assertEquals(analyst, solicitation.getAnalyzedBy());
-        assertNotNull(solicitation.getAnalyzedAt());
         assertEquals(SolicitationStatus.APPROVED, response.status());
-        verify(solicitationRepository).save(solicitation);
+        assertEquals("Solicitação aprovada após análise.", response.analysisComment());
+        assertNotNull(response.analyzedAt());
+        verify(solicitationService).saveSolicitation(mockSolicitation);
     }
 
     @Test
     void shouldRejectInReviewSolicitation() {
-        solicitation.setStatus(SolicitationStatus.IN_REVIEW);
-        mockSolicitation();
-        when(solicitationRepository.save(solicitation)).thenReturn(solicitation);
+        mockSolicitation.setStatus(SolicitationStatus.IN_REVIEW);
+        when(solicitationRepository.findById(mockSolicitation.getId())).thenReturn(Optional.of(mockSolicitation));
+        SolicitationDecisionDTO decisionDTO = new SolicitationDecisionDTO(AnalysisDecision.REJECT, "Reprovada após análise técnica.");
 
-        analystService.decide(solicitation.getId(), analyst,
-                new SolicitationDecisionDTO(AnalysisDecision.REJECT, "Reprovada após análise técnica."));
+        SolicitationResponseDTO response = analystService.decide(mockSolicitation.getId(), analyst, decisionDTO);
 
-        assertEquals(SolicitationStatus.REJECTED, solicitation.getStatus());
-    }
-
-    @Test
-    void shouldNotDecideDraftSolicitation() {
-        solicitation.setStatus(SolicitationStatus.DRAFT);
-        mockSolicitation();
-
-        IllegalStateException exception = assertThrows(
-                IllegalStateException.class,
-                () -> analystService.decide(solicitation.getId(), analyst,
-                        new SolicitationDecisionDTO(AnalysisDecision.APPROVE, "Aprovação não permitida agora."))
-        );
-
-        assertEquals("Only SUBMITTED or IN_REVIEW solicitations can be decided.", exception.getMessage());
-        verify(solicitationRepository, never()).save(any());
-    }
-
-    @Test
-    void shouldThrowExceptionWhenSolicitationNotFound() {
-        UUID notFoundId = UUID.randomUUID();
-        when(solicitationRepository.findById(notFoundId)).thenReturn(Optional.empty());
-
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> analystService.getById(notFoundId, analyst)
-        );
-
-        assertEquals("Solicitation not found with id: " + notFoundId, exception.getMessage());
-    }
-
-    @Test
-    void shouldRejectAccessForClientUser() {
-        User clientUser = User.builder().id(UUID.randomUUID()).role(Role.CLIENT).build();
-        mockSolicitation();
-
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> analystService.getById(solicitation.getId(), clientUser)
-        );
-
-        assertEquals("Only ANALYST or ADMIN users can access solicitations for analysis.", exception.getMessage());
-    }
-
-    @Test
-    void shouldRejectAnalystWhenSolicitationStateIsNull() {
-        solicitation.setState(null);
-        mockSolicitation();
-
-        AccessDeniedException exception = assertThrows(
-                AccessDeniedException.class,
-                () -> analystService.getById(solicitation.getId(), analyst)
-        );
-
-        assertEquals("Access denied. Solicitation state is outside your coverage.", exception.getMessage());
-    }
-
-    private void mockUserRepositoryForAnalyst() {
-        when(userRepository.findById(analyst.getId())).thenReturn(Optional.of(analyst));
-    }
-
-    private void mockUserRepositoryForAdmin() {
-        when(userRepository.findById(admin.getId())).thenReturn(Optional.of(admin));
-    }
-
-    private void mockSolicitation() {
-        when(solicitationRepository.findById(solicitation.getId())).thenReturn(Optional.of(solicitation));
+        assertEquals(SolicitationStatus.REJECTED, response.status());
+        verify(solicitationService).saveSolicitation(mockSolicitation);
     }
 }

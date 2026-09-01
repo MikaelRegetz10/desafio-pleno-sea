@@ -67,8 +67,8 @@ class SolicitationQueryBuilderTest {
     }
 
     @Test
-    @DisplayName("Deve retornar Optional.empty quando ANALYST solicita estado fora de sua cobertura")
-    void shouldReturnEmptyWhenAnalystRequestsStateOutsideCoverage() {
+    @DisplayName("Deve realizar fallback para todas as UFs de cobertura quando ANALYST solicita estado fora de sua cobertura")
+    void shouldFallbackToCoverageStatesWhenAnalystRequestsStateOutsideCoverage() {
         when(user.getRole()).thenReturn(Role.ANALYST);
         when(user.getCoverageStates()).thenReturn(Set.of("SP", "RJ"));
 
@@ -78,7 +78,10 @@ class SolicitationQueryBuilderTest {
 
         Optional<Query> queryOpt = queryBuilder.buildQuery(criteria);
 
-        assertTrue(queryOpt.isEmpty());
+        assertTrue(queryOpt.isPresent());
+        Query query = queryOpt.get();
+        assertTrue(query.isBool());
+        assertFalse(query.bool().filter().isEmpty());
     }
 
     @Test
