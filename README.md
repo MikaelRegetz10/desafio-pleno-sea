@@ -73,7 +73,7 @@ Os DTOs de request são `records` com validação via Bean Validation. As respos
 - Define e atualiza a cobertura de UFs de cada analista.
 - Lista todos os usuários e ativa/desativa contas.
 
-Observação sobre o controle de acesso implementado: as rotas `/api/admin/**` exigem `ROLE_ADMIN` e as rotas `/api/analyst/**` exigem `ROLE_ANALYST`, de forma exclusiva por perfil. Um usuário ADMIN não acessa diretamente os endpoints de análise com o mesmo token; para atuar como analista seria necessário logar com uma conta ANALYST.
+Observação sobre o controle de acesso implementado: as rotas `/api/admin/**` exigem `ROLE_ADMIN` e as rotas `/api/analyst/**` exigem `ROLE_ANALYST`, de forma exclusiva por perfil.
 
 ### Regras de validação por etapa
 
