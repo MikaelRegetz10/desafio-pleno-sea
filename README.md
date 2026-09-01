@@ -310,7 +310,7 @@ curl -X POST http://localhost:8080/api/analyst/solicitations/$SOLICITATION_ID/de
 
 O repositório inclui uma collection do Postman com os principais fluxos (autenticação, administração, solicitação multi step e análise). As variáveis de coleção `base_url`, `token`, `solicitation_id` e `user_id` já cobrem o encadeamento entre requisições; os testes de script preenchem `token` automaticamente após cada login e `solicitation_id` após a criação do step 1.
 
-Para usar, importe o arquivo da collection no Postman, ajuste `base_url` se necessário (padrão `http://localhost:8080`) e execute as requisições de login antes das demais chamadas autenticadas.
+Para usar, importe o arquivo da collection no Postman que se encontra na pasta postman na raiz do projeto, ajuste `base_url` se necessário (padrão `http://localhost:8080`) e execute as requisições de login antes das demais chamadas autenticadas.
 
 ## 10. Endpoints disponíveis
 
