@@ -8,6 +8,7 @@ import com.desafio.sea.domain.enums.SolicitationStatus;
 import com.desafio.sea.infra.client.ViaCepService;
 import com.desafio.sea.infra.elasticsearch.SolicitationIndexerService;
 import com.desafio.sea.repository.SolicitationRepository;
+import io.micrometer.core.instrument.MeterRegistry;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -26,6 +27,8 @@ public class SolicitationService {
     private ViaCepService viaCepService;
     @Autowired
     private SolicitationIndexerService indexerService;
+    @Autowired
+    private MeterRegistry meterRegistry;
 
     @Transactional
     public SolicitationResponseDTO saveStep1(UUID id, User client, SolicitationStep1DTO dto) {
@@ -114,7 +117,11 @@ public class SolicitationService {
         solicitation.setStatus(SolicitationStatus.SUBMITTED);
         solicitation.setSubmittedAt(Instant.now());
 
-        return SolicitationResponseDTO.fromEntity(saveSolicitation(solicitation));
+        Solicitation saved = saveSolicitation(solicitation);
+
+        meterRegistry.counter("solicitation.submitted.count").increment();
+
+        return SolicitationResponseDTO.fromEntity(saved);
     }
 
     private Solicitation findAndValidateDraftOwnership(UUID id, User client) {
