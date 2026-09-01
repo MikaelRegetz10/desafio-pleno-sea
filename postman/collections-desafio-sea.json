@@ -1,0 +1,381 @@
+{
+  "info": {
+    "_postman_id": "259c8f6d-7299-4870-92e5-4d2198195b2f",
+    "name": "Sea Desafio",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "auth",
+      "item": [
+        {
+          "name": "Login Client",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.token) {",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"joao.silva@sea.com\",\n    \"password\": \"123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Analyst",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.token) {",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"analista@sea.com\",\n    \"password\": \"123\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Login Admin",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.token) {",
+                  "    pm.collectionVariables.set(\"token\", jsonData.token);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"email\": \"admin@sea.com\",\n    \"password\": \"Admin123!\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "login"]
+            }
+          }
+        },
+        {
+          "name": "Register Client",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Cliente Teste\",\n    \"email\": \"cliente@teste.com\",\n    \"password\": \"123456\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/auth/register",
+              "host": ["{{base_url}}"],
+              "path": ["api", "auth", "register"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "admin",
+      "item": [
+        {
+          "name": "Create Analyst",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"João Silva\",\n  \"email\": \"joao.silva@sea.com\",\n  \"password\": \"123456\",\n  \"coverageStates\": [\"SP\", \"RJ\", \"MG\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/analyst",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "analyst"]
+            }
+          }
+        },
+        {
+          "name": "Update Coverage",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"coverageStates\": [\"SP\", \"RJ\", \"MG\", \"DF\"]\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/admin/{{user_id}}/coverage",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "{{user_id}}", "coverage"]
+            }
+          }
+        },
+        {
+          "name": "List All Users",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/users",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "users"]
+            }
+          }
+        },
+        {
+          "name": "Toggle User Status",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/admin/{{user_id}}/toggle-status",
+              "host": ["{{base_url}}"],
+              "path": ["api", "admin", "{{user_id}}", "toggle-status"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "solicitation",
+      "item": [
+        {
+          "name": "Create Step 1",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var jsonData = pm.response.json();",
+                  "if (jsonData && jsonData.id) {",
+                  "    pm.collectionVariables.set(\"solicitation_id\", jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"INSTALLATION\",\n  \"title\": \"Instalação de Painel Solar\",\n  \"description\": \"Instalação completa de módulos fotovoltaicos no telhado.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/solicitations/step1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "solicitations", "step1"]
+            }
+          }
+        },
+        {
+          "name": "Update Step 1",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"serviceType\": \"MAINTENANCE\",\n  \"title\": \"Manutenção de Painel Solar\",\n  \"description\": \"Manutenção preventiva e limpeza de módulos fotovoltaicos.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/solicitations/{{solicitation_id}}/step1",
+              "host": ["{{base_url}}"],
+              "path": ["api", "solicitations", "{{solicitation_id}}", "step1"]
+            }
+          }
+        },
+        {
+          "name": "Get Solicitation By ID",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/solicitations/{{solicitation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "solicitations", "{{solicitation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Update Step 2 (Address)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"cep\": \"70040-900\",\n  \"number\": \"100\",\n  \"complement\": \"Bloco A\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/solicitations/{{solicitation_id}}/step2",
+              "host": ["{{base_url}}"],
+              "path": ["api", "solicitations", "{{solicitation_id}}", "step2"]
+            }
+          }
+        },
+        {
+          "name": "Update Step 3 (Details)",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "PUT",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"priority\": \"HIGH\",\n  \"preferredDate\": \"2026-09-15\",\n  \"estimatedValue\": 1500.00,\n  \"termsAccepted\": true\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/solicitations/{{solicitation_id}}/step3",
+              "host": ["{{base_url}}"],
+              "path": ["api", "solicitations", "{{solicitation_id}}", "step3"]
+            }
+          }
+        },
+        {
+          "name": "Submit Solicitation",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/solicitations/{{solicitation_id}}/submit",
+              "host": ["{{base_url}}"],
+              "path": ["api", "solicitations", "{{solicitation_id}}", "submit"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "analyst",
+      "item": [
+        {
+          "name": "Search Solicitations",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analyst/solicitations/search?q=solar&page=0&size=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analyst", "solicitations", "search"],
+              "query": [
+                { "key": "q", "value": "solar" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Solicitation Details",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analyst/solicitations/{{solicitation_id}}",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analyst", "solicitations", "{{solicitation_id}}"]
+            }
+          }
+        },
+        {
+          "name": "Start Review",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{base_url}}/api/analyst/solicitations/{{solicitation_id}}/start",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analyst", "solicitations", "{{solicitation_id}}", "start"]
+            }
+          }
+        },
+        {
+          "name": "Decide Solicitation",
+          "request": {
+            "auth": { "type": "bearer", "bearer": [{ "key": "token", "value": "{{token}}", "type": "string" }] },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"APPROVE\",\n  \"comment\": \"Solicitação analisada e aprovada conforme requisitos técnicos.\"\n}",
+              "options": { "raw": { "language": "json" } }
+            },
+            "url": {
+              "raw": "{{base_url}}/api/analyst/solicitations/{{solicitation_id}}/decide",
+              "host": ["{{base_url}}"],
+              "path": ["api", "analyst", "solicitations", "{{solicitation_id}}", "decide"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    { "key": "base_url", "value": "http://localhost:8080" },
+    { "key": "token", "value": "" },
+    { "key": "solicitation_id", "value": "" },
+    { "key": "user_id", "value": "" }
+  ]
+}
