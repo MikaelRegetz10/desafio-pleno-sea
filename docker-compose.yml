@@ -4,15 +4,15 @@ services:
     container_name: solicitation_postgres
     restart: always
     environment:
-      POSTGRES_DB: solicitation_db
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgrespassword
+      POSTGRES_DB: ${DB_NAME}
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
     ports:
-      - "5432:5432"
+      - "${DB_PORT}:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d solicitation_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USER} -d ${DB_NAME}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -41,16 +41,21 @@ services:
     container_name: solicitation_app
     restart: on-failure
     ports:
-      - "8080:8080"
+      - "${SERVER_PORT:-8080}:8080"
+    env_file:
+      - .env
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - DB_HOST=postgres
       - DB_PORT=5432
-      - DB_NAME=solicitation_db
-      - DB_USER=postgres
-      - DB_PASSWORD=postgrespassword
-      - ELASTICSEARCH_HOST=elasticsearch:9200
-      - JWT_SECRET=404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+      - DB_NAME=${DB_NAME}
+      - DB_USER=${DB_USER}
+      - DB_PASSWORD=${DB_PASSWORD}
+      - ELASTICSEARCH_HOST=http://elasticsearch:9200
+      - JWT_SECRET=${JWT_SECRET}
+      - JWT_EXPIRATION=${JWT_EXPIRATION}
+      - ADMIN_EMAIL=${ADMIN_EMAIL}
+      - ADMIN_PASSWORD=${ADMIN_PASSWORD}
     depends_on:
       postgres:
         condition: service_healthy
